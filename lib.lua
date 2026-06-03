@@ -49,13 +49,19 @@ function lib:new(props)
 	size = utility.mobilesize(size)
 	textsize = utility.mobilefontsize(textsize)
 	
-	local window = {["size"] = size}
+	local window = {["size"] = size,["key"] = Enum.KeyCode.RightShift}
 	
 	local screen = Instance.new("ScreenGui",cre)
 	screen.Name = tostring(math.random(0,999999))..tostring(math.random(0,999999))
 	screen.ResetOnSpawn = false
 	screen.DisplayOrder = 100
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+	UserInputService.InputBegan:Connect(function(input)
+		if input.KeyCode == window.key then
+			screen.Enabled = not screen.Enabled
+		end
+	end)
 	
 	local screennotification = Instance.new("ScreenGui",cre)
 	screennotification.Name = tostring(math.random(0,999999))..tostring(math.random(0,999999))
