@@ -731,6 +731,7 @@ function sections:slider(props)
 	function slider:set(v)
 		if v then
 			x = math.clamp(v,min,max)
+			last = x
 			TextLabel_2.Text = tostring(x) .. "/" .. tostring(max)
 			Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
 			pcall(function()
