@@ -1355,7 +1355,7 @@ function sections:custom(props)
 	customholder.BackgroundTransparency = 1
 	customholder.BorderSizePixel = 0
 	
-	section.window.block[customholder] = true
+	self.window.block[customholder] = true
 
 	custom = {
 		["lib"] = self.lib,
