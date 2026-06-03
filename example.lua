@@ -1,4 +1,4 @@
-local library = require(game.StarterGui.script)
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/igorgames-htm/ownui/main/lib.lua"))()
 
 local window = library:new({})
 
