@@ -383,6 +383,8 @@ function lib:page(props)
 	left.ScrollingDirection = Enum.ScrollingDirection.Y
 	left.ScrollBarThickness = 6
 	left.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Left
+
+	Instance.new("UIListLayout",left)
 	
 	local right = Instance.new("ScrollingFrame",content)
 	right.BackgroundTransparency = 1
@@ -394,6 +396,7 @@ function lib:page(props)
 	right.ScrollingDirection = Enum.ScrollingDirection.Y
 	right.ScrollBarThickness = 6
 	
+	Instance.new("UIListLayout",right)
 	
 	page = {
 		["button"] = ImageButton,
