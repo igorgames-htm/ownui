@@ -614,9 +614,6 @@ function sections:toggle(props)
 		x = value
 		section.window.block[button] = not x
 		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
-		pcall(function()
-			callback(x)
-		end)
 	end
 	return toggle
 end
@@ -734,9 +731,6 @@ function sections:slider(props)
 			last = x
 			TextLabel_2.Text = tostring(x) .. "/" .. tostring(max)
 			Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
-			pcall(function()
-				callback(x)
-			end)
 		end
 	end
 	section:updatesize()
@@ -879,9 +873,6 @@ function sections:dropdown(props)
 	function dropdown:set(v)
 		if v then
 			TextButton.Text = v
-			pcall(function()
-				callback(v)
-			end)
 		end
 	end
 	return dropdown
@@ -1052,9 +1043,6 @@ function sections:multibox(props)
 				xxx[v2] = utility.find(x,v2) and true or false
 			end
 			updatethetext()
-			pcall(function()
-				callback(v)
-			end)
 		end
 	end
 	return multibox
@@ -1284,9 +1272,6 @@ function sections:colorpicker(props)
 		OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
 		OverImageLabel_2.Position = UDim2.new(s,0,1-v2,0)
 		OverFrame_3.Position = UDim2.new(0.5,0,h,0)
-		pcall(function()
-			callback(v)	
-		end)
 	end
 	return colorpicker
 end
@@ -1348,9 +1333,6 @@ function sections:textbox(props)
 	
 	function textbox:set(v)
 		TextBox.Text = v
-		pcall(function()
-			callback(TextBox.Text)
-		end)
 	end
 	return textbox
 end
