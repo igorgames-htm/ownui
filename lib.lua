@@ -1345,7 +1345,7 @@ function sections:textbox(props)
 		["lib"] = section.lib,
 		["window"] = section.window
 	}
-	
+	section:updatesize()
 	function textbox:set(v)
 		TextBox.Text = v
 		pcall(function()
