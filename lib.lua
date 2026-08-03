@@ -42,7 +42,7 @@ utility.fixtable = function(t)
 		end
 		table.insert(tf,v)
 	end
-	return
+	return tf
 end
 
 lib.__index = lib
