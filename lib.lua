@@ -33,6 +33,17 @@ utility.from_hex = function(h)
 	local r,g,b = string.match(h,"^#?(%w%w)(%w%w)(%w%w)$")
 	return Color3.fromRGB(tonumber(r,16), tonumber(g,16), tonumber(b,16))
 end
+utility.fixtable = function(t)
+	local tf = {}
+	for i,v in pairs(t) do
+		if v == true then
+			table.insert(tf,i)
+			continue
+		end
+		table.insert(tf,v)
+	end
+	return
+end
 
 lib.__index = lib
 pages.__index = pages
@@ -751,7 +762,9 @@ function sections:dropdown(props)
 	local max = props.max or props.Max or props.maximum or props.Maximum or 4
 	local options = props.options or props.Options or props.Settings or props.settings or {}
 	local callback = props.callback or props.callBack or props.CallBack or props.Callback or function()end
-	
+
+	options = utility.fixtable(options)
+
 	local dropdown = {}
 
 	local Frame = Instance.new("Frame",section.content)
@@ -895,6 +908,9 @@ function sections:multibox(props)
 	local max = props.max or props.Max or props.maximum or props.Maximum or 4
 	local options = props.options or props.Options or props.Settings or props.settings or {}
 	local callback = props.callback or props.callBack or props.CallBack or props.Callback or function()end
+
+	def = utility.fixtable(def)
+	options = utility.fixtable(options)
 
 	local multibox = {}
 
@@ -1047,7 +1063,7 @@ function sections:multibox(props)
 	}
 	function multibox:set(v)
 		if v then
-			x = v
+			x = utility.fixtable(v)
 			for i,v2 in options do
 				xxx[v2] = utility.find(x,v2) and true or false
 			end
