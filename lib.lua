@@ -7,6 +7,7 @@ local utility = {}
 local players = game:GetService("Players")
 local cre = game:GetService("RunService"):IsStudio() and players.LocalPlayer.PlayerGui or game:GetService("CoreGui") 
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local isMobile = UserInputService.TouchEnabled
 
 utility.mobilenumber = function(num)
@@ -32,6 +33,15 @@ end
 utility.from_hex = function(h)
 	local r,g,b = string.match(h,"^#?(%w%w)(%w%w)(%w%w)$")
 	return Color3.fromRGB(tonumber(r,16), tonumber(g,16), tonumber(b,16))
+end
+-- Tween helper
+utility.tween = function(obj, props, duration, style, direction)
+	duration = duration or 0.3
+	style = style or Enum.EasingStyle.Quad
+	direction = direction or Enum.EasingDirection.Out
+	local tween = TweenService:Create(obj, TweenInfo.new(duration, style, direction), props)
+	tween:Play()
+	return tween
 end
 
 lib.__index = lib
@@ -80,20 +90,41 @@ function lib:new(props)
 	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	UIListLayout.Padding = UDim.new(6, 0)
 	
+	-- Main window - modern glass effect with shadow
 	local outline = Instance.new("Frame",screen)
 	outline.AnchorPoint = Vector2.new(0.5, 0.5)
-	outline.BackgroundColor3 = color
+	outline.BackgroundColor3 = Color3.fromRGB(25,25,30)
+	outline.BackgroundTransparency = 0.15
 	outline.BorderSizePixel = 0
 	outline.Position = UDim2.new(0, screen.AbsoluteSize.X/2, 0, screen.AbsoluteSize.Y/2)
 	outline.Size = UDim2.new(0,size.X,0,size.Y)
+	
+	-- Shadow
+	local shadow = Instance.new("UIShadow",outline)
+	shadow.Color = Color3.fromRGB(0,0,0)
+	shadow.Offset = Vector2.new(4,4)
+	shadow.Blur = 16
+	shadow.Transparency = 0.6
 	
 	local UICorner = Instance.new("UICorner",outline)
 	local UIStroke = Instance.new("UIStroke",outline)
 	
 	UICorner.CornerRadius = UDim.new(0.02, 0)
-	UIStroke.Transparency = 0.8
-	UIStroke.Thickness = 2
+	UIStroke.Transparency = 0.3
+	UIStroke.Thickness = 1.5
 	UIStroke.Color = color
+	
+	-- Subtle gradient on window background
+	local gradient = Instance.new("UIGradient",outline)
+	gradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(30,30,35)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(20,20,25))
+	}
+	gradient.Transparency = NumberSequence.new(0.4)
+	
+	-- Blur effect (glass)
+	local blur = Instance.new("UIBackgroundBlur",outline)
+	blur.BlurSize = 6
 	
 	local title = Instance.new("Frame",outline)
 	title.BackgroundTransparency = 1
@@ -141,6 +172,7 @@ function lib:new(props)
 		end
 	end)
 	
+	-- Title icon and text
 	local ImageLabel = Instance.new("ImageLabel",title)
 	ImageLabel.BackgroundTransparency = 1
 	ImageLabel.BorderSizePixel = 0
@@ -158,7 +190,9 @@ function lib:new(props)
 	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel.TextSize = textsize
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel.TextTransparency = 0.1 -- slight glow
 	
+	-- Tabs container
 	local tabs = Instance.new("Frame",outline)
 	local tabslist = Instance.new("ScrollingFrame",tabs)
 	local UIListLayout = Instance.new("UIListLayout",tabslist)
@@ -176,7 +210,7 @@ function lib:new(props)
 	tabslist.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	tabslist.ScrollingDirection = Enum.ScrollingDirection.Y
 	tabslist.CanvasSize = UDim2.new(0, 0, 0, 0)
-	tabslist.ScrollBarThickness = 6
+	tabslist.ScrollBarThickness = 4
 	
 	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	UIListLayout.Padding = UDim.new(0.02, 0)
@@ -188,6 +222,7 @@ function lib:new(props)
 	content.Position = UDim2.new(0.0963687152, 0, 0.132692277, 0)
 	content.Size = UDim2.new(0.90363127, 0, 0.867307663, 0)
 	
+	-- Mobile toggle button
 	local mobilescreen = nil
 	if isMobile then
 		mobilescreen = Instance.new("ScreenGui",cre)
@@ -199,6 +234,7 @@ function lib:new(props)
 		local ImageButton = Instance.new("ImageButton",mobilescreen)
 		local UICorner = Instance.new("UICorner",ImageButton)
 		local UIStroke = Instance.new("UIStroke",ImageButton)
+		local UIShadow = Instance.new("UIShadow",ImageButton)
 		ImageButton.AnchorPoint = Vector2.new(0.5, 0)
 		ImageButton.BackgroundColor3 = color
 		ImageButton.BorderSizePixel = 0
@@ -209,8 +245,11 @@ function lib:new(props)
 		ImageButton.Image = icon
 		UICorner.CornerRadius = UDim.new(0.075, 0)
 		UIStroke.Transparency = 0.9
-		UIStroke.Thickness = 2
+		UIStroke.Thickness = 1.5
 		UIStroke.Color = color
+		UIShadow.Color = Color3.fromRGB(0,0,0)
+		UIShadow.Offset = Vector2.new(2,2)
+		UIShadow.Blur = 4
 		ImageButton.MouseButton1Click:Connect(function()
 			if screen then
 				screen.Enabled = not screen.Enabled
@@ -249,6 +288,7 @@ function lib:setsize(size,ingrovemobile)
 		window.outline.Size = UDim2.new(0,setsize.X,0,setsize.Y)
 	end
 end
+
 function lib:setfont(font)
 	local window = self
 	if window and window.screen and font then
@@ -260,6 +300,7 @@ function lib:setfont(font)
 		end
 	end
 end
+
 function lib:settextsize(num,ingrovemobile)
 	ingrovemobile = ingrovemobile ~= nil and ingrovemobile or false
 	local window = self
@@ -273,6 +314,7 @@ function lib:settextsize(num,ingrovemobile)
 		end
 	end
 end
+
 function lib:settheme(color)
 	local window = self
 	if window and window.screen and color then
@@ -293,6 +335,7 @@ function lib:settheme(color)
 		end
 	end
 end
+
 function lib:delete()
 	local window = self
 	if window and window.screen then
@@ -302,27 +345,41 @@ function lib:delete()
 		end
 	end
 end
+
+-- Modern notification with blur and shadow
 function lib:notification(props)
 	props = props or {}
 	local window = self
 	local text = props.text or "Text"
 	local timeout = props.time or 3
-	--local side = props.side and props.side:lower() or "right"
 	
 	local Frame = Instance.new("Frame",window.notifications)
 	local content = Instance.new("Frame",Frame)
 	local TextLabel = Instance.new("TextLabel",content)
 	local UICorner = Instance.new("UICorner",content)
-
+	local UIStroke = Instance.new("UIStroke",content)
+	local UIShadow = Instance.new("UIShadow",content)
+	local blur = Instance.new("UIBackgroundBlur",content)
+	
 	Frame.AnchorPoint = Vector2.new(0, 1)
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
 	Frame.Size = UDim2.new(1, 0, utility.mobilenumber(50.8330002), 0)
 
-	content.BackgroundColor3 = window.color
+	content.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	content.BackgroundTransparency = 0.2
 	content.BorderSizePixel = 0
 	content.Position = UDim2.new(1, 0, 0, 0)
 	content.Size = UDim2.new(1, 0, 1, 0)
+	
+	UICorner.CornerRadius = UDim.new(0.1, 0)
+	UIStroke.Thickness = 1
+	UIStroke.Color = window.color
+	UIStroke.Transparency = 0.7
+	UIShadow.Color = Color3.fromRGB(0,0,0)
+	UIShadow.Offset = Vector2.new(2,2)
+	UIShadow.Blur = 8
+	blur.BlurSize = 6
 
 	TextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 	TextLabel.BackgroundTransparency = 1.000
@@ -336,37 +393,53 @@ function lib:notification(props)
 	TextLabel.TextWrapped = true
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Right
 	TextLabel.TextYAlignment = Enum.TextYAlignment.Top
-
-	UICorner.CornerRadius = UDim.new(0.1, 0)
 	
-	content:TweenPosition(UDim2.new(0, 0, 0, 0),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.3)
+	utility.tween(content, {Position = UDim2.new(0, 0, 0, 0)}, 0.4, Enum.EasingStyle.Back)
 	task.spawn(function()
-		task.wait(timeout+0.3)
-		content:TweenPosition(UDim2.new(1, 0, 0, 0),Enum.EasingDirection.In,Enum.EasingStyle.Quad,0.3)
+		task.wait(timeout+0.4)
+		utility.tween(content, {Position = UDim2.new(1, 0, 0, 0)}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 		task.wait(0.3)
 		Frame:Destroy()
 	end)
 end
+
 function lib:page(props)
 	local window = self
 	local icon = props.icon or ""
 	
 	local page = {}
 	
-	local ImageButton = Instance.new("ImageButton",window.tabs)
-	local UICorner = Instance.new("UICorner",ImageButton)
-
-	ImageButton.BackgroundTransparency = 0.9
-	ImageButton.BackgroundColor3 = Color3.new(0,0,0)
-	ImageButton.AutoButtonColor = false
-	ImageButton.BorderSizePixel = 0
-	ImageButton.Size = UDim2.new(0.507246375, 0, 0.077605322, 0)
-	ImageButton.Image = icon
-
+	-- Modern tab button with icon + text
+	local FrameBtn = Instance.new("Frame",window.tabs)
+	local ImageButton = Instance.new("ImageButton",FrameBtn)
+	local TextLabel = Instance.new("TextLabel",FrameBtn)
+	local UICorner = Instance.new("UICorner",FrameBtn)
+	
+	FrameBtn.BackgroundTransparency = 0.9
+	FrameBtn.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	FrameBtn.BorderSizePixel = 0
+	FrameBtn.Size = UDim2.new(0.507246375, 0, 0.077605322, 0)
+	
+	window.block[FrameBtn] = true
 	window.block[ImageButton] = true
-
+	window.block[TextLabel] = true
+	
+	ImageButton.Size = UDim2.new(0.4, 0, 1, 0)
+	ImageButton.BackgroundTransparency = 1
+	ImageButton.Position = UDim2.new(0.1, 0, 0, 0)
+	ImageButton.Image = icon
+	ImageButton.AutoButtonColor = false
+	
+	TextLabel.Size = UDim2.new(0.5, 0, 1, 0)
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Position = UDim2.new(0.5, 0, 0, 0)
+	TextLabel.Font = window.font
+	TextLabel.Text = props.name or ""
+	TextLabel.TextColor3 = Color3.fromRGB(200,200,200)
+	TextLabel.TextSize = window.textsize
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	
 	UICorner.CornerRadius = UDim.new(0.075000003, 0)
-	UICorner.Parent = ImageButton
 	
 	local content = Instance.new("Frame",window.content)
 	content.Visible = false
@@ -381,7 +454,7 @@ function lib:page(props)
 	left.CanvasSize = UDim2.new(0, 0, 0, 0)
 	left.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	left.ScrollingDirection = Enum.ScrollingDirection.Y
-	left.ScrollBarThickness = 6
+	left.ScrollBarThickness = 4
 	left.VerticalScrollBarPosition = Enum.VerticalScrollBarPosition.Left
 
 	Instance.new("UIListLayout",left)
@@ -394,12 +467,12 @@ function lib:page(props)
 	right.CanvasSize = UDim2.new(0, 0, 0, 0)
 	right.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	right.ScrollingDirection = Enum.ScrollingDirection.Y
-	right.ScrollBarThickness = 6
+	right.ScrollBarThickness = 4
 	
 	Instance.new("UIListLayout",right)
 	
 	page = {
-		["button"] = ImageButton,
+		["button"] = FrameBtn,
 		["content"] = content,
 		["left"] = left,
 		["right"] = right,
@@ -409,12 +482,13 @@ function lib:page(props)
 	}
 	setmetatable(page,pages)
 	
-	ImageButton.MouseButton1Click:Connect(function()
+	FrameBtn.MouseButton1Click:Connect(function()
 		page:openpage()
 	end)
 	
 	return page
 end
+
 function pages:openpage()
 	local page = self
 	if page and page.content and page.window.content then
@@ -426,6 +500,7 @@ function pages:openpage()
 		page.content.Visible = true
 	end
 end
+
 function pages:section(props)
 	local page = self
 	local name = props.name or "new ui"
@@ -440,17 +515,25 @@ function pages:section(props)
 	local TextLabel = Instance.new("TextLabel",Frame)
 	local content = Instance.new("Frame",Frame)
 	local UIListLayout = Instance.new("UIListLayout",content)
+	local UIShadow = Instance.new("UIShadow",Frame)
+	local UIStroke = Instance.new("UIStroke",Frame)
 
 	page.window.block[Frame] = true
 	page.window.block[content] = true
 	page.window.block[TextLabel] = true
 
-	Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	Frame.BackgroundTransparency = 0.800
+	Frame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	Frame.BackgroundTransparency = 0.3
 	Frame.BorderSizePixel = 0
 	Frame.Size = UDim2.new(1, 0, 0.1, 0)
 
 	UICorner.CornerRadius = UDim.new(0, utility.mobilenumber(10))
+	UIShadow.Color = Color3.fromRGB(0,0,0)
+	UIShadow.Offset = Vector2.new(2,2)
+	UIShadow.Blur = 6
+	UIStroke.Thickness = 1
+	UIStroke.Color = page.window.color
+	UIStroke.Transparency = 0.5
 
 	TextLabel.BackgroundTransparency = 1.000
 	TextLabel.BorderSizePixel = 0
@@ -461,6 +544,7 @@ function pages:section(props)
 	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel.TextSize = page.window.textsize
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel.TextTransparency = 0.2
 
 	content.BackgroundTransparency = 1
 	content.BorderSizePixel = 0
@@ -478,6 +562,7 @@ function pages:section(props)
 	setmetatable(section,sections)
 	return section
 end
+
 function sections:updatesize()
 	local section = self
 	local content = section.content
@@ -493,6 +578,7 @@ function sections:updatesize()
 		holder.Size = UDim2.new(1, 0, 0, y)
 	end
 end
+
 function sections:button(props)
 	local section = self
 	local name = props.name or "new ui"
@@ -514,11 +600,11 @@ function sections:button(props)
 
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
-	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
+	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(30))
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
-	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	TextButton.BackgroundTransparency = 0.800
+	TextButton.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	TextButton.BackgroundTransparency = 0.3
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.5, 0, 0.5, 0)
 	TextButton.Size = UDim2.new(1, -10, 1, -5)
@@ -530,7 +616,18 @@ function sections:button(props)
 
 	UICorner.CornerRadius = UDim.new(0.1, 0)
 	
+	-- Hover effects
+	TextButton.MouseEnter:Connect(function()
+		utility.tween(TextButton, {BackgroundTransparency = 0.1}, 0.2)
+	end)
+	TextButton.MouseLeave:Connect(function()
+		utility.tween(TextButton, {BackgroundTransparency = 0.3}, 0.2)
+	end)
+	
 	TextButton.MouseButton1Click:Connect(function()
+		utility.tween(TextButton, {Size = UDim2.new(1, -5, 1, -2)}, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		task.wait(0.1)
+		utility.tween(TextButton, {Size = UDim2.new(1, -10, 1, -5)}, 0.1)
 		pcall(function()
 			callback()
 		end)
@@ -545,6 +642,7 @@ function sections:button(props)
 	
 	return button
 end
+
 function sections:toggle(props)
 	local section = self
 	
@@ -563,45 +661,58 @@ function sections:toggle(props)
 	local toggle = {}
 	
 	local Frame = Instance.new("Frame",section.content)
-	local button = Instance.new("ImageButton",Frame)
-	local UICorner = Instance.new("UICorner",button)
+	local button = Instance.new("Frame",Frame) -- Background of switch
+	local thumb = Instance.new("Frame",button) -- Thumb
+	local UICornerBtn = Instance.new("UICorner",button)
+	local UICornerThumb = Instance.new("UICorner",thumb)
 	local TextLabel = Instance.new("TextLabel",Frame)
 	
 	section.window.block[Frame] = true
-	section.window.block[button] = not x
+	section.window.block[button] = true
+	section.window.block[thumb] = true
 	section.window.block[TextLabel] = true
 	
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
-	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
+	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(30))
 
 	button.AnchorPoint = Vector2.new(0, 0.5)
-	button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
-	button.BackgroundTransparency = 0.200
+	button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(60,60,70)
+	button.BackgroundTransparency = 0.2
 	button.BorderSizePixel = 0
 	button.Position = UDim2.new(0.030911902, 0, 0.5, 0)
-	button.Size = UDim2.new(0.0463678502, 0, 0.600000024, 0)
+	button.Size = UDim2.new(0.1, 0, 0.5, 0)
 	button.AutoButtonColor = false
+	
+	UICornerBtn.CornerRadius = UDim.new(0.5, 0)
 
-	UICorner.CornerRadius = UDim.new(0.100000001, 0)
+	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+	thumb.BackgroundColor3 = Color3.fromRGB(255,255,255)
+	thumb.BorderSizePixel = 0
+	thumb.Position = UDim2.new(x and 1 or 0, 0, 0.5, 0)
+	thumb.Size = UDim2.new(0.6, 0, 0.8, 0)
+	UICornerThumb.CornerRadius = UDim.new(0.5, 0)
 
 	TextLabel.BackgroundTransparency = 1
 	TextLabel.BorderSizePixel = 0
-	TextLabel.Position = UDim2.new(0.0924559534, 0, 0.200000003, 0)
-	TextLabel.Size = UDim2.new(0.890262723, 0, 0.600000024, 0)
+	TextLabel.Position = UDim2.new(0.0924559534, 0, 0, 0)
+	TextLabel.Size = UDim2.new(0.890262723, 0, 1, 0)
 	TextLabel.Font = section.window.font
 	TextLabel.Text = name
 	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel.TextSize = section.window.textsize
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 	
-	button.MouseButton1Click:Connect(function()
-		x = not x
-		section.window.block[button] = not x
-		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
-		pcall(function()
-			callback(x)
-		end)
+	button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			x = not x
+			local targetPos = x and 1 or 0
+			utility.tween(thumb, {Position = UDim2.new(targetPos, 0, 0.5, 0)}, 0.3, Enum.EasingStyle.Quad)
+			utility.tween(button, {BackgroundColor3 = x and section.window.color or Color3.fromRGB(60,60,70)}, 0.3)
+			pcall(function()
+				callback(x)
+			end)
+		end
 	end)
 	
 	section:updatesize()
@@ -612,14 +723,16 @@ function sections:toggle(props)
 	}
 	function toggle:set(value)
 		x = value
-		section.window.block[button] = not x
-		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
+		local targetPos = x and 1 or 0
+		thumb.Position = UDim2.new(targetPos, 0, 0.5, 0)
+		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(60,60,70)
 		pcall(function()
 			callback(x)
 		end)
 	end
 	return toggle
 end
+
 function sections:slider(props)
 	local section = self
 	
@@ -628,7 +741,7 @@ function sections:slider(props)
 	local min = props.min or 0
 	local max = props.max or 1
 	local def = props.def or 0.5
-	local rounding = props.rounding or props.Rounding or props.round or props.Round or props.decimals or props.Decimals or false
+	local rounding = props.rounding or false
 	
 	local x = def
 	local last = x
@@ -641,19 +754,23 @@ function sections:slider(props)
 	local TextLabel_2 = Instance.new("TextLabel",Frame_2)
 	local UICorner = Instance.new("UICorner",Frame_2)
 	local Frame_3 = Instance.new("Frame",Frame_2)
+	local thumb = Instance.new("Frame",Frame_2)
+	local UICornerThumb = Instance.new("UICorner",thumb)
 	
 	section.window.block[Frame] = true
 	section.window.block[TextLabel] = true
 	section.window.block[Frame_2] = true
 	section.window.block[TextLabel_2] = true
+	section.window.block[Frame_3] = true
+	section.window.block[thumb] = true
 
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
-	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(35))
+	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(40))
 
 	TextLabel.BackgroundTransparency = 1.000
 	TextLabel.BorderSizePixel = 0
-	TextLabel.Position = UDim2.new(0.0309597515, 0, 0.0571428575, 0)
+	TextLabel.Position = UDim2.new(0.0309597515, 0, 0, 0)
 	TextLabel.Size = UDim2.new(0.969040275, 0, 0.45714286, 0)
 	TextLabel.Font = section.window.font
 	TextLabel.Text = name
@@ -662,11 +779,11 @@ function sections:slider(props)
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 	Frame_2.Parent = Frame
-	Frame_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame_2.BackgroundColor3 = Color3.fromRGB(60,60,70)
 	Frame_2.BorderSizePixel = 0
 	Frame_2.Position = UDim2.new(0.0309597515, 0, 0.514285743, 0)
 	Frame_2.Size = UDim2.new(0.93808049, 0, 0.285714298, 0)
+	UICorner.CornerRadius = UDim.new(0.2, 0)
 	
 	TextLabel_2.BackgroundTransparency = 1.000
 	TextLabel_2.BorderSizePixel = 0
@@ -677,44 +794,33 @@ function sections:slider(props)
 	TextLabel_2.TextSize = section.window.textsize
 	TextLabel_2.ZIndex = 2
 
-	UICorner.CornerRadius = UDim.new(0.2, 0)
-
 	Frame_3.BackgroundColor3 = section.window.color
 	Frame_3.BorderSizePixel = 0
 	Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
+	Frame_3.BackgroundTransparency = 0.3
+	
+	thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+	thumb.BackgroundColor3 = section.window.color
+	thumb.BorderSizePixel = 0
+	thumb.Position = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 0.5, 0)
+	thumb.Size = UDim2.new(0, utility.mobilenumber(12), 0, utility.mobilenumber(12))
+	UICornerThumb.CornerRadius = UDim.new(0.5, 0)
+	thumb.ZIndex = 3
 	
 	local dragging = false
 
 	Frame_2.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
-		end
-	end)
-
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-	
-	UserInputService.InputChanged:Connect(function(input)
-		if not dragging then
-			return
-		end
-
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
 			local size = math.clamp(
 				input.Position.X - Frame_2.AbsolutePosition.X,
 				0,
 				Frame_2.AbsoluteSize.X
 			)
-
 			x = ((max - min) / Frame_2.AbsoluteSize.X) * size + min
 			x = rounding and math.floor(x) or x
 			Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
+			thumb.Position = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 0.5, 0)
 			TextLabel_2.Text = (rounding and x or utility.round(x,2)) .. "/" .. tostring(max)
 			if last ~= x then
 				pcall(function()
@@ -724,6 +830,39 @@ function sections:slider(props)
 			end
 		end
 	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+	
+	UserInputService.InputChanged:Connect(function(input)
+		if not dragging then
+			return
+		end
+
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			local size = math.clamp(
+				input.Position.X - Frame_2.AbsolutePosition.X,
+				0,
+				Frame_2.AbsoluteSize.X
+			)
+
+			x = ((max - min) / Frame_2.AbsoluteSize.X) * size + min
+			x = rounding and math.floor(x) or x
+			Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
+			thumb.Position = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 0.5, 0)
+			TextLabel_2.Text = (rounding and x or utility.round(x,2)) .. "/" .. tostring(max)
+			if last ~= x then
+				pcall(function()
+					callback(x)
+				end)
+				last = x
+			end
+		end
+	end)
+	
 	slider = {
 		["lib"] = section.lib,
 		["window"] = section.window
@@ -734,6 +873,7 @@ function sections:slider(props)
 			last = x
 			TextLabel_2.Text = tostring(x) .. "/" .. tostring(max)
 			Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
+			thumb.Position = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 0.5, 0)
 			pcall(function()
 				callback(x)
 			end)
@@ -743,14 +883,15 @@ function sections:slider(props)
 	
 	return slider
 end
+
 function sections:dropdown(props)
 	local section = self
 	
-	local name = props.name or props.Name or props.page or props.Page or props.pagename or props.Pagename or props.PageName or props.pageName or "new ui"
-	local def = props.def or props.Def or props.default or props.Default or ""
-	local max = props.max or props.Max or props.maximum or props.Maximum or 4
-	local options = props.options or props.Options or props.Settings or props.settings or {}
-	local callback = props.callback or props.callBack or props.CallBack or props.Callback or function()end
+	local name = props.name or "new ui"
+	local def = props.def or ""
+	local max = props.max or 4
+	local options = props.options or {}
+	local callback = props.callback or function()end
 	
 	local dropdown = {}
 
@@ -770,8 +911,8 @@ function sections:dropdown(props)
 	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(45))
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
-	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	TextButton.BackgroundTransparency = 0.800
+	TextButton.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	TextButton.BackgroundTransparency = 0.3
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.498452008, 0, 0.666666687, 0)
 	TextButton.Size = UDim2.new(0.969040275, 0, 0.444444448, 0)
@@ -792,13 +933,10 @@ function sections:dropdown(props)
 	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel.TextSize = section.window.textsize
 
-	UICorner.CornerRadius = UDim.new(0.100000001, 0)
-	UICorner.Parent = TextButton
+	UICorner.CornerRadius = UDim.new(0.1, 0)
 
 	TextLabel_2.Parent = Frame
-	TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel_2.BackgroundTransparency = 1.000
-	TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TextLabel_2.BorderSizePixel = 0
 	TextLabel_2.Position = UDim2.new(0.0154798757, 0, 0, 0)
 	TextLabel_2.Size = UDim2.new(0.962848306, 0, 0.444444448, 0)
@@ -811,33 +949,43 @@ function sections:dropdown(props)
 	local OverFrame = Instance.new("Frame",section.window.screen)
 	local OverScrollingFrame = Instance.new("ScrollingFrame",OverFrame)
 	local OverUIListLayout = Instance.new("UIListLayout",OverScrollingFrame)
+	local UICornerOver = Instance.new("UICorner",OverFrame)
+	local UIStrokeOver = Instance.new("UIStroke",OverFrame)
 	
 	TextButton.MouseButton1Click:Connect(function()
-		OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
-		OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
-		OverFrame.Visible = not OverFrame.Visible
-		TextLabel.Text = OverFrame.Visible and "-" or "+"
+		if OverFrame.Visible then
+			utility.tween(OverFrame, {Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, 0)}, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			task.wait(0.2)
+			OverFrame.Visible = false
+			TextLabel.Text = "+"
+		else
+			OverFrame.Visible = true
+			OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, 0)
+			utility.tween(OverFrame, {Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*math.min(max,#options))))}, 0.3, Enum.EasingStyle.Back)
+			TextLabel.Text = "-"
+		end
 	end)
 	
 	section.window.block[OverFrame] = true
 	section.window.block[OverScrollingFrame] = true
-	
-	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.800
-	OverFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+	OverFrame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	OverFrame.BackgroundTransparency = 0.15
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
 	OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
 	OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
+	UICornerOver.CornerRadius = UDim.new(0,6)
+	UIStrokeOver.Thickness = 1
+	UIStrokeOver.Color = section.window.color
+	UIStrokeOver.Transparency = 0.6
 
 	OverScrollingFrame.Active = true
-	OverScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	OverScrollingFrame.BackgroundTransparency = 1.000
-	OverScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	OverScrollingFrame.BorderSizePixel = 0
 	OverScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
 	OverScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-	OverScrollingFrame.ScrollBarThickness = 6
+	OverScrollingFrame.ScrollBarThickness = 4
 	OverScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	OverScrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 
@@ -846,7 +994,6 @@ function sections:dropdown(props)
 	game:GetService("RunService").RenderStepped:Connect(function()
 		if OverFrame and OverFrame.Visible then
 			OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
-			OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
 		end
 	end)
 
@@ -857,16 +1004,23 @@ function sections:dropdown(props)
 		OverTextButton.Size = UDim2.new(0.983974338, 0, 0, utility.mobilenumber(20))
 		OverTextButton.Font = section.window.font
 		OverTextButton.Text = v
-		OverTextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		OverTextButton.TextColor3 = Color3.fromRGB(200,200,200)
 		OverTextButton.TextSize = section.window.textsize
 		OverTextButton.TextXAlignment = Enum.TextXAlignment.Left
 		OverTextButton.MouseButton1Click:Connect(function()
 			OverFrame.Visible = false
-			TextLabel.Text = OverFrame.Visible and "-" or "+"
+			TextLabel.Text = "+"
 			TextButton.Text = v
 			pcall(function()
 				callback(v)
 			end)
+		end)
+		-- Hover
+		OverTextButton.MouseEnter:Connect(function()
+			OverTextButton.TextColor3 = Color3.fromRGB(255,255,255)
+		end)
+		OverTextButton.MouseLeave:Connect(function()
+			OverTextButton.TextColor3 = Color3.fromRGB(200,200,200)
 		end)
 	end
 	
@@ -890,16 +1044,15 @@ end
 function sections:multibox(props)
 	local section = self
 
-	local name = props.name or props.Name or props.page or props.Page or props.pagename or props.Pagename or props.PageName or props.pageName or "new ui"
-	local def = props.def or props.Def or props.default or props.Default or {}
-	local max = props.max or props.Max or props.maximum or props.Maximum or 4
-	local options = props.options or props.Options or props.Settings or props.settings or {}
-	local callback = props.callback or props.callBack or props.CallBack or props.Callback or function()end
+	local name = props.name or "new ui"
+	local def = props.def or {}
+	local max = props.max or 4
+	local options = props.options or {}
+	local callback = props.callback or function()end
 
 	local multibox = {}
 
 	local x = def
-	
 	local xxx = {}
 
 	local Frame = Instance.new("Frame",section.content)
@@ -910,12 +1063,14 @@ function sections:multibox(props)
 
 	local function updatethetext()
 		local text = ""
+		local count = 0
 		for i,v in pairs(x) do
-			if i < 5 then
+			if count < 5 then
 				text = text..v..", "
-			end
-			if i == 5 then
+				count += 1
+			else
 				text = text.."..."
+				break
 			end
 		end
 		TextButton.Text = text
@@ -932,8 +1087,8 @@ function sections:multibox(props)
 	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(45))
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
-	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	TextButton.BackgroundTransparency = 0.800
+	TextButton.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	TextButton.BackgroundTransparency = 0.3
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.498452008, 0, 0.666666687, 0)
 	TextButton.Size = UDim2.new(0.969040275, 0, 0.444444448, 0)
@@ -953,13 +1108,10 @@ function sections:multibox(props)
 	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel.TextSize = section.window.textsize
 
-	UICorner.CornerRadius = UDim.new(0.100000001, 0)
-	UICorner.Parent = TextButton
+	UICorner.CornerRadius = UDim.new(0.1, 0)
 
 	TextLabel_2.Parent = Frame
-	TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	TextLabel_2.BackgroundTransparency = 1.000
-	TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TextLabel_2.BorderSizePixel = 0
 	TextLabel_2.Position = UDim2.new(0.0154798757, 0, 0, 0)
 	TextLabel_2.Size = UDim2.new(0.962848306, 0, 0.444444448, 0)
@@ -972,33 +1124,43 @@ function sections:multibox(props)
 	local OverFrame = Instance.new("Frame",section.window.screen)
 	local OverScrollingFrame = Instance.new("ScrollingFrame",OverFrame)
 	local OverUIListLayout = Instance.new("UIListLayout",OverScrollingFrame)
+	local UICornerOver = Instance.new("UICorner",OverFrame)
+	local UIStrokeOver = Instance.new("UIStroke",OverFrame)
 
 	TextButton.MouseButton1Click:Connect(function()
-		OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
-		OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
-		OverFrame.Visible = not OverFrame.Visible
-		TextLabel.Text = OverFrame.Visible and "-" or "+"
+		if OverFrame.Visible then
+			utility.tween(OverFrame, {Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, 0)}, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			task.wait(0.2)
+			OverFrame.Visible = false
+			TextLabel.Text = "+"
+		else
+			OverFrame.Visible = true
+			OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, 0)
+			utility.tween(OverFrame, {Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*math.min(max,#options))))}, 0.3, Enum.EasingStyle.Back)
+			TextLabel.Text = "-"
+		end
 	end)
 
 	section.window.block[OverFrame] = true
 	section.window.block[OverScrollingFrame] = true
 
-	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.800
-	OverFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	OverFrame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	OverFrame.BackgroundTransparency = 0.15
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
 	OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
 	OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
+	UICornerOver.CornerRadius = UDim.new(0,6)
+	UIStrokeOver.Thickness = 1
+	UIStrokeOver.Color = section.window.color
+	UIStrokeOver.Transparency = 0.6
 
 	OverScrollingFrame.Active = true
-	OverScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	OverScrollingFrame.BackgroundTransparency = 1.000
-	OverScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	OverScrollingFrame.BorderSizePixel = 0
 	OverScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
 	OverScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-	OverScrollingFrame.ScrollBarThickness = 6
+	OverScrollingFrame.ScrollBarThickness = 4
 	OverScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	OverScrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 
@@ -1007,7 +1169,6 @@ function sections:multibox(props)
 	game:GetService("RunService").RenderStepped:Connect(function()
 		if OverFrame and OverFrame.Visible then
 			OverFrame.Position = UDim2.new(0,TextButton.AbsolutePosition.X,0,TextButton.AbsolutePosition.Y+TextButton.AbsoluteSize.Y)
-			OverFrame.Size = UDim2.new(0, TextButton.AbsoluteSize.X, 0, utility.mobilenumber(20+(20*max)))
 		end
 	end)
 
@@ -1019,11 +1180,10 @@ function sections:multibox(props)
 		OverTextButton.Size = UDim2.new(0.983974338, 0, 0, utility.mobilenumber(20))
 		OverTextButton.Font = section.window.font
 		OverTextButton.Text = v
-		OverTextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		OverTextButton.TextColor3 = xxx[v] and Color3.fromRGB(255,255,255) or Color3.fromRGB(200,200,200)
 		OverTextButton.TextSize = section.window.textsize
 		OverTextButton.TextXAlignment = Enum.TextXAlignment.Left
 		OverTextButton.MouseButton1Click:Connect(function()
-			TextLabel.Text = OverFrame.Visible and "-" or "+"
 			xxx[v] = not xxx[v]
 			local add = {}
 			for i2,v2 in options do
@@ -1033,9 +1193,16 @@ function sections:multibox(props)
 			end
 			x = add
 			updatethetext()
+			OverTextButton.TextColor3 = xxx[v] and Color3.fromRGB(255,255,255) or Color3.fromRGB(200,200,200)
 			pcall(function()
 				callback(x)
 			end)
+		end)
+		OverTextButton.MouseEnter:Connect(function()
+			OverTextButton.TextColor3 = Color3.fromRGB(255,255,255)
+		end)
+		OverTextButton.MouseLeave:Connect(function()
+			OverTextButton.TextColor3 = xxx[v] and Color3.fromRGB(255,255,255) or Color3.fromRGB(200,200,200)
 		end)
 	end
 
@@ -1067,9 +1234,7 @@ function sections:colorpicker(props)
 	local def = props.def or Color3.fromRGB(255,0,0)
 	
 	local x = def
-	
 	local h,s,v = x:ToHSV()
-	
 	local hsv = {h,s,v}
 	
 	local Frame = Instance.new("Frame",section.content)
@@ -1087,7 +1252,7 @@ function sections:colorpicker(props)
 
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
-	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
+	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(30))
 
 	TextLabel.BackgroundTransparency = 1.000
 	TextLabel.BorderSizePixel = 0
@@ -1104,6 +1269,11 @@ function sections:colorpicker(props)
 	ImageButton.Position = UDim2.new(0.842000008, 7, 0.119999997, 0)
 	ImageButton.Size = UDim2.new(0.127, 0, 0.76, 0)
 	ImageButton.AutoButtonColor = false
+	-- add shadow to color preview
+	local shadowPreview = Instance.new("UIShadow",ImageButton)
+	shadowPreview.Color = Color3.fromRGB(0,0,0)
+	shadowPreview.Offset = Vector2.new(1,1)
+	shadowPreview.Blur = 4
 	
 	local OverFrame = Instance.new("Frame",section.window.screen)
 	local OverFrame_2 = Instance.new("Frame",OverFrame)
@@ -1113,8 +1283,11 @@ function sections:colorpicker(props)
 	local OverImageButton = Instance.new("ImageButton",OverFrame)
 	local OverUIGradient = Instance.new("UIGradient",OverImageButton)
 	local OverFrame_3 = Instance.new("Frame",OverImageButton)
+	local UICornerOver = Instance.new("UICorner",OverFrame)
+	local UIStrokeOver = Instance.new("UIStroke",OverFrame)
+	
 	OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
-	OverImageLabel_2.Position = UDim2.new(s,0,v,0)
+	OverImageLabel_2.Position = UDim2.new(s,0,1-v,0)
 	OverFrame_3.Position = UDim2.new(0.5,0,h,0)
 	
 	section.window.block[OverFrame] = true
@@ -1123,17 +1296,20 @@ function sections:colorpicker(props)
 	section.window.block[OverImageButton] = true
 	section.window.block[OverFrame_3] = true
 
-	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.800
+	OverFrame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+	OverFrame.BackgroundTransparency = 0.15
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
 	OverFrame.Position = UDim2.new(0,Frame.AbsolutePosition.X,0,Frame.AbsolutePosition.Y+Frame.AbsoluteSize.Y)
 	OverFrame.Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, utility.mobilenumber(170))
+	UICornerOver.CornerRadius = UDim.new(0,6)
+	UIStrokeOver.Thickness = 1
+	UIStrokeOver.Color = section.window.color
+	UIStrokeOver.Transparency = 0.5
 	
 	game:GetService("RunService").RenderStepped:Connect(function()
 		if OverFrame.Visible then
 			OverFrame.Position = UDim2.new(0,Frame.AbsolutePosition.X,0,Frame.AbsolutePosition.Y+Frame.AbsoluteSize.Y)
-			OverFrame.Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, utility.mobilenumber(170))
 		end
 	end)
 
@@ -1154,14 +1330,14 @@ function sections:colorpicker(props)
 	OverImageLabel_2.Size = UDim2.new(0.0170624666, 0, 0.0399999991, 0)
 	OverImageLabel_2.Image = "rbxassetid://7074391319"
 
-	OverTextBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverTextBox.BackgroundTransparency = 0.800
+	OverTextBox.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	OverTextBox.BackgroundTransparency = 0.3
 	OverTextBox.BorderSizePixel = 0
 	OverTextBox.Position = UDim2.new(0.0154798757, 0, 0.874750018, 0)
 	OverTextBox.Size = UDim2.new(0.969040275, 0, 0.09375, 0)
 	OverTextBox.ClearTextOnFocus = false
 	OverTextBox.Font = section.window.font
-	OverTextBox.PlaceholderColor3 = Color3.fromRGB(200, 200, 200)
+	OverTextBox.PlaceholderColor3 = Color3.fromRGB(150,150,150)
 	OverTextBox.PlaceholderText = "#ffffff"
 	OverTextBox.Text = ""
 	OverTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1174,7 +1350,19 @@ function sections:colorpicker(props)
 	OverImageButton.Image = ""
 	OverImageButton.AutoButtonColor = false
 
-	OverUIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 4)), ColorSequenceKeypoint.new(0.10, Color3.fromRGB(255, 153, 0)), ColorSequenceKeypoint.new(0.20, Color3.fromRGB(209, 255, 0)), ColorSequenceKeypoint.new(0.30, Color3.fromRGB(55, 255, 0)), ColorSequenceKeypoint.new(0.40, Color3.fromRGB(0, 255, 102)), ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 102, 255)), ColorSequenceKeypoint.new(0.70, Color3.fromRGB(51, 0, 255)), ColorSequenceKeypoint.new(0.80, Color3.fromRGB(204, 0, 255)), ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 153)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 4))}
+	OverUIGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 4)),
+		ColorSequenceKeypoint.new(0.10, Color3.fromRGB(255, 153, 0)),
+		ColorSequenceKeypoint.new(0.20, Color3.fromRGB(209, 255, 0)),
+		ColorSequenceKeypoint.new(0.30, Color3.fromRGB(55, 255, 0)),
+		ColorSequenceKeypoint.new(0.40, Color3.fromRGB(0, 255, 102)),
+		ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
+		ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 102, 255)),
+		ColorSequenceKeypoint.new(0.70, Color3.fromRGB(51, 0, 255)),
+		ColorSequenceKeypoint.new(0.80, Color3.fromRGB(204, 0, 255)),
+		ColorSequenceKeypoint.new(0.90, Color3.fromRGB(255, 0, 153)),
+		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 4))
+	}
 	OverUIGradient.Rotation = 90
 
 	OverFrame_3.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1189,7 +1377,6 @@ function sections:colorpicker(props)
 		OverFrame_2.BackgroundColor3 = Color3.fromHSV(resy,1,1)
 		hsv[1] = resy
 		x = Color3.fromHSV(hsv[1],hsv[2],hsv[3])
-		OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
 		callback(x)
 		OverFrame_3.Position = UDim2.new(0.5,0,resy,0)
 	end
@@ -1200,7 +1387,6 @@ function sections:colorpicker(props)
 		hsv[2] = resx
 		hsv[3] = 1-resy
 		x = Color3.fromHSV(hsv[1],hsv[2],hsv[3])
-		OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
 		callback(x)
 		OverImageLabel_2.Position = UDim2.new(resx,0,resy,0)
 	end
@@ -1209,37 +1395,31 @@ function sections:colorpicker(props)
 	local draggingHue = false
 
 	OverFrame_2.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			draggingColor = true
 			movecp(input.Position)
 		end
 	end)
 
 	OverImageButton.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			draggingHue = true
 			movehue(input.Position)
 		end
 	end)
 
 	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			draggingColor = false
 			draggingHue = false
 		end
 	end)
 
 	UserInputService.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
-
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			if draggingColor then
 				movecp(input.Position)
 			end
-
 			if draggingHue then
 				movehue(input.Position)
 			end
@@ -1253,21 +1433,37 @@ function sections:colorpicker(props)
 	end)
 	
 	ImageButton.MouseButton1Click:Connect(function()
-		OverFrame.Position = UDim2.new(0,Frame.AbsolutePosition.X,0,Frame.AbsolutePosition.Y+Frame.AbsoluteSize.Y)
-		OverFrame.Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, utility.mobilenumber(170))
-		OverFrame.Visible = not OverFrame.Visible
+		if OverFrame.Visible then
+			utility.tween(OverFrame, {Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, 0)}, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			task.wait(0.2)
+			OverFrame.Visible = false
+		else
+			OverFrame.Visible = true
+			OverFrame.Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, 0)
+			utility.tween(OverFrame, {Size = UDim2.new(0, Frame.AbsoluteSize.X, 0, utility.mobilenumber(170))}, 0.3, Enum.EasingStyle.Back)
+		end
 	end)
 	
 	OverTextBox.FocusLost:Connect(function()
 		local saved = OverTextBox.Text
-		x = utility.from_hex(saved)
-		local h,s,v2 = x:ToHSV()
-		hsv = {h,s,v2}
-		OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
-		ImageButton.BackgroundColor3 = x
-		OverImageLabel_2.Position = UDim2.new(s,0,1-v2,0)
-		OverFrame_3.Position = UDim2.new(0.5,0,h,0)
-		OverTextBox.Text = ""
+		if saved ~= "" then
+			local success, result = pcall(function()
+				return utility.from_hex(saved)
+			end)
+			if success then
+				x = result
+				local h,s2,v2 = x:ToHSV()
+				hsv = {h,s2,v2}
+				OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
+				ImageButton.BackgroundColor3 = x
+				OverImageLabel_2.Position = UDim2.new(s2,0,1-v2,0)
+				OverFrame_3.Position = UDim2.new(0.5,0,h,0)
+				pcall(function()
+					callback(x)
+				end)
+			end
+			OverTextBox.Text = ""
+		end
 	end)
 	
 	section:updatesize()
@@ -1279,10 +1475,10 @@ function sections:colorpicker(props)
 	function colorpicker:set(v)
 		x = v
 		ImageButton.BackgroundColor3 = v
-		local h,s,v2 = x:ToHSV()
-		hsv = {h,s,v2}
+		local h,s2,v2 = x:ToHSV()
+		hsv = {h,s2,v2}
 		OverFrame_2.BackgroundColor3 = Color3.fromHSV(hsv[1],1,1)
-		OverImageLabel_2.Position = UDim2.new(s,0,1-v2,0)
+		OverImageLabel_2.Position = UDim2.new(s2,0,1-v2,0)
 		OverFrame_3.Position = UDim2.new(0.5,0,h,0)
 		pcall(function()
 			callback(x)
@@ -1293,10 +1489,10 @@ end
 
 function sections:textbox(props)
 	local section = self
-	local name = props.name or props.Name or props.page or props.Page or props.pagename or props.Pagename or props.PageName or props.pageName or "new ui"
-	local def = props.def or props.Def or props.default or props.Default or ""
-	local placeholder = props.placeholder or props.Placeholder or props.placeHolder or props.PlaceHolder or props.placeholdertext or props.PlaceHolderText or props.PlaceHoldertext or props.placeHolderText or props.placeHoldertext or props.Placeholdertext or props.PlaceholderText or props.placeholderText or ""
-	local callback = props.callback or props.callBack or props.CallBack or props.Callback or function()end
+	local name = props.name or "new ui"
+	local def = props.def or ""
+	local placeholder = props.placeholder or ""
+	local callback = props.callback or function()end
 	
 	local textbox = {}
 	
@@ -1304,6 +1500,7 @@ function sections:textbox(props)
 	local TextLabel = Instance.new("TextLabel",Frame)
 	local TextBox = Instance.new("TextBox",Frame)
 	local UICorner = Instance.new("UICorner",TextBox)
+	local UIStroke = Instance.new("UIStroke",TextBox)
 
 	section.window.block[Frame] = true
 	section.window.block[TextBox] = true
@@ -1311,7 +1508,7 @@ function sections:textbox(props)
 
 	Frame.BackgroundTransparency = 1
 	Frame.BorderSizePixel = 0
-	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(35))
+	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(40))
 
 	TextLabel.BackgroundTransparency = 1.000
 	TextLabel.BorderSizePixel = 0
@@ -1322,15 +1519,15 @@ function sections:textbox(props)
 	TextLabel.TextSize = section.window.textsize
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-	TextBox.BackgroundColor3 = Color3.fromRGB(0,0,0)
-	TextBox.BackgroundTransparency = 0.8
+	TextBox.BackgroundColor3 = Color3.fromRGB(30,30,35)
+	TextBox.BackgroundTransparency = 0.3
 	TextBox.BorderSizePixel = 0
 	TextBox.Position = UDim2.new(0, 0, 0.54285717, 0)
 	TextBox.Size = UDim2.new(1, 0, 0.45714286, 0)
 	TextBox.Font = Enum.Font.SourceSans
 	TextBox.Text = def
 	TextBox.PlaceholderText = placeholder
-	TextBox.PlaceholderColor3 = Color3.fromRGB(200,200,200)
+	TextBox.PlaceholderColor3 = Color3.fromRGB(150,150,150)
 	TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TextBox.TextSize = 14.000
 	TextBox.FocusLost:Connect(function()
@@ -1340,6 +1537,9 @@ function sections:textbox(props)
 	end)
 
 	UICorner.CornerRadius = UDim.new(0.1, 0)
+	UIStroke.Thickness = 1
+	UIStroke.Color = section.window.color
+	UIStroke.Transparency = 0.7
 	
 	textbox = {
 		["lib"] = section.lib,
@@ -1378,6 +1578,5 @@ function sections:custom(props)
 	
 	return custom
 end
-
 
 return lib
