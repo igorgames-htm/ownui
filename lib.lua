@@ -10,13 +10,13 @@ local UserInputService = game:GetService("UserInputService")
 local isMobile = UserInputService.TouchEnabled
 
 utility.mobilenumber = function(num)
-	return isMobile and num/2.5 or num
+	return isMobile and num/2.1 or num
 end
 utility.mobilesize = function(vec)
-	return isMobile and vec/2.5 or vec
+	return isMobile and vec/2.1 or vec
 end
 utility.mobilefontsize = function(num)
-	return isMobile and num/2.4 or num
+	return isMobile and num/2.2 or num
 end
 utility.round = function(n,d)
 	return tonumber(string.format("%."..(d or 0).."f",n))
