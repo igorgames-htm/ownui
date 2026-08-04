@@ -882,7 +882,7 @@ function sections:dropdown(props)
 	section.window.block[OverScrollingFrame] = true
 	
 	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.400
+	OverFrame.BackgroundTransparency = 0.300
 	OverFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
@@ -995,7 +995,7 @@ function sections:multibox(props)
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
 	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	TextButton.BackgroundTransparency = 0.400
+	TextButton.BackgroundTransparency = 0.800
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.498452008, 0, 0.666666687, 0)
 	TextButton.Size = UDim2.new(0.969040275, 0, 0.444444448, 0)
@@ -1046,7 +1046,7 @@ function sections:multibox(props)
 	section.window.block[OverScrollingFrame] = true
 
 	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.800
+	OverFrame.BackgroundTransparency = 0.300
 	OverFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
