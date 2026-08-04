@@ -10,13 +10,13 @@ local UserInputService = game:GetService("UserInputService")
 local isMobile = UserInputService.TouchEnabled
 
 utility.mobilenumber = function(num)
-	return isMobile and num/2.5 or num
+	return isMobile and num/2.1 or num
 end
 utility.mobilesize = function(vec)
-	return isMobile and vec/2.5 or vec
+	return isMobile and vec/2.1 or vec
 end
 utility.mobilefontsize = function(num)
-	return isMobile and num/2.4 or num
+	return isMobile and num/2 or num
 end
 utility.round = function(n,d)
 	return tonumber(string.format("%."..(d or 0).."f",n))
@@ -98,58 +98,72 @@ function lib:new(props)
 	outline.Size = UDim2.new(0,size.X,0,size.Y)
 	
 	local UICorner = Instance.new("UICorner",outline)
-	local UIStroke = Instance.new("UIStroke",outline)
 	
 	UICorner.CornerRadius = UDim.new(0.02, 0)
-	UIStroke.Transparency = 0.8
+	UIStroke = Instance.new("UIStroke",outline)
+	UIStroke.Transparency = 0.85
 	UIStroke.Thickness = 2
-	UIStroke.Color = Color3.fromRGB(40,40,40)
+	UIStroke.Color = Color3.fromRGB(20,20,20)
 	
 	local title = Instance.new("Frame",outline)
 	title.BackgroundTransparency = 1
 	title.BorderSizePixel = 0
 	title.Size = UDim2.new(1, 0, 0.132692307, 0)
 	
-	local dragging = false
-	local dragStart
-	local startPos
+	local RunService = game:GetService("RunService")
 
-	title.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+local dragging = false
+local dragStart
+local startPos
+local targetPos = outline.Position
 
-			dragging = true
-			dragStart = input.Position
-			startPos = outline.Position
-		end
-	end)
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = outline.Position
+		targetPos = outline.Position
+	end
+end)
 
-	title.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch then
+title.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
 
-			dragging = false
-		end
-	end)
+UserInputService.InputChanged:Connect(function(input)
+	if not dragging then
+		return
+	end
 
-	UserInputService.InputChanged:Connect(function(input)
-		if not dragging then
-			return
-		end
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
 
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-			or input.UserInputType == Enum.UserInputType.Touch then
+		local delta = input.Position - dragStart
 
-			local delta = input.Position - dragStart
-
-			outline.Position = UDim2.new(
-				math.clamp(startPos.X.Scale,0,1),
-				math.clamp(startPos.X.Offset + delta.X,outline.Size.X.Offset/2,screen.AbsoluteSize.X-(outline.Size.X.Offset/2)),
-				math.clamp(startPos.Y.Scale,0,1),
-				math.clamp(startPos.Y.Offset + delta.Y,outline.Size.Y.Offset/2,screen.AbsoluteSize.Y-(outline.Size.Y.Offset/2))
+		targetPos = UDim2.new(
+			startPos.X.Scale,
+			math.clamp(
+				startPos.X.Offset + delta.X,
+				outline.Size.X.Offset / 2,
+				screen.AbsoluteSize.X - outline.Size.X.Offset / 2
+			),
+			startPos.Y.Scale,
+			math.clamp(
+				startPos.Y.Offset + delta.Y,
+				outline.Size.Y.Offset / 2,
+				screen.AbsoluteSize.Y - outline.Size.Y.Offset / 2
 			)
-		end
-	end)
+		)
+	end
+end)
+
+RunService.RenderStepped:Connect(function(dt)
+	outline.Position = outline.Position:Lerp(targetPos, math.clamp(dt * 20, 0, 1))
+end)
 	
 	local ImageLabel = Instance.new("ImageLabel",title)
 	ImageLabel.BackgroundTransparency = 1
@@ -225,6 +239,59 @@ function lib:new(props)
 			if screen then
 				screen.Enabled = not screen.Enabled
 			end
+		end)
+		
+		local dragging2 = false
+		local dragStart2
+		local startPos2 =ImageButton.Position
+		local targetPos2 = ImageButton.Position
+
+		ImageButton.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+				dragging2 = true
+				dragStart2 = input.Position
+				startPos2 = ImageButton.Position
+				targetPos2 = ImageButton.Position
+			end
+		end)
+
+		ImageButton.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+				dragging2 = false
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if not dragging2 then
+				return
+			end
+		
+			if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch then
+			
+				local delta = input.Position - dragStart2
+			
+				targetPos2 = UDim2.new(
+					startPos2.X.Scale,
+					math.clamp(
+						startPos2.X.Offset + delta.X,
+						-screen.AbsoluteSize.X/2,
+						screen.AbsoluteSize.X/2
+					),
+					startPos2.Y.Scale,
+					math.clamp(
+						startPos2.Y.Offset + delta.Y,
+						0,
+						screen.AbsoluteSize.Y
+					)
+				)
+			end
+		end)
+
+		RunService.RenderStepped:Connect(function(dt)
+			ImageButton.Position = ImageButton.Position:Lerp(targetPos2, math.clamp(dt * 30, 0, 1))
 		end)
 	end
 	
@@ -565,8 +632,8 @@ function sections:toggle(props)
 	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
 
 	button.AnchorPoint = Vector2.new(0, 0.5)
-	button.BackgroundColor3 = x and Color3.fromRGB(40,40,40) or Color3.fromRGB(200,200,200)
-	button.BackgroundTransparency = 0.200
+	button.BackgroundColor3 = x and Color3.fromRGB(230,230,230) or Color3.fromRGB(100,100,100)
+	button.BackgroundTransparency = 0.100
 	button.BorderSizePixel = 0
 	button.Position = UDim2.new(0.030911902, 0, 0.5, 0)
 	button.Size = UDim2.new(0.0463678502, 0, 0.600000024, 0)
@@ -587,6 +654,7 @@ function sections:toggle(props)
 	button.MouseButton1Click:Connect(function()
 		x = not x
 		section.window.block[button] = not x
+		button.BackgroundColor3 = x and Color3.fromRGB(230,230,230) or Color3.fromRGB(100,100,100)
 		pcall(function()
 			callback(x)
 		end)
@@ -601,6 +669,7 @@ function sections:toggle(props)
 	function toggle:set(value)
 		x = value
 		section.window.block[button] = not x
+		button.BackgroundColor3 = x and Color3.fromRGB(230,230,230) or Color3.fromRGB(100,100,100)
 		pcall(function()
 			callback(x)
 		end)
@@ -649,7 +718,7 @@ function sections:slider(props)
 	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 	Frame_2.Parent = Frame
-	Frame_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	Frame_2.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame_2.BorderSizePixel = 0
 	Frame_2.Position = UDim2.new(0.0309597515, 0, 0.514285743, 0)
@@ -660,13 +729,14 @@ function sections:slider(props)
 	TextLabel_2.Size = UDim2.new(1, 0, 1, 0)
 	TextLabel_2.Font = section.window.font
 	TextLabel_2.Text = tostring(x) .. "/" .. tostring(max)
-	TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel_2.TextColor3 = Color3.fromRGB(255,255,255)
+	TextLabel_2.TextStrokeTransparency = 0
 	TextLabel_2.TextSize = section.window.textsize
 	TextLabel_2.ZIndex = 2
 
 	UICorner.CornerRadius = UDim.new(0.2, 0)
 
-	Frame_3.BackgroundColor3 = section.window.color
+	Frame_3.BackgroundColor3 = Color3.fromRGB(255,255,255)
 	Frame_3.BorderSizePixel = 0
 	Frame_3.Size = UDim2.new(math.clamp((x - min) / (max - min),0,1), 0, 1, 0)
 	
@@ -812,7 +882,7 @@ function sections:dropdown(props)
 	section.window.block[OverScrollingFrame] = true
 	
 	OverFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	OverFrame.BackgroundTransparency = 0.800
+	OverFrame.BackgroundTransparency = 0.400
 	OverFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	OverFrame.BorderSizePixel = 0
 	OverFrame.Visible = false
@@ -925,7 +995,7 @@ function sections:multibox(props)
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
 	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	TextButton.BackgroundTransparency = 0.800
+	TextButton.BackgroundTransparency = 0.400
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.498452008, 0, 0.666666687, 0)
 	TextButton.Size = UDim2.new(0.969040275, 0, 0.444444448, 0)
