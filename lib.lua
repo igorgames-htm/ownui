@@ -50,7 +50,6 @@ pages.__index = pages
 sections.__index = sections
 
 function lib:new(props)
-	local color = props.color or Color3.new(1,0,0)
 	local size = props.size or Vector2.new(716,520)
 	local name = props.name or "new ui"
 	local font = props.font or Enum.Font.Ubuntu
@@ -93,7 +92,7 @@ function lib:new(props)
 	
 	local outline = Instance.new("Frame",screen)
 	outline.AnchorPoint = Vector2.new(0.5, 0.5)
-	outline.BackgroundColor3 = color
+	outline.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	outline.BorderSizePixel = 0
 	outline.Position = UDim2.new(0, screen.AbsoluteSize.X/2, 0, screen.AbsoluteSize.Y/2)
 	outline.Size = UDim2.new(0,size.X,0,size.Y)
@@ -104,7 +103,7 @@ function lib:new(props)
 	UICorner.CornerRadius = UDim.new(0.02, 0)
 	UIStroke.Transparency = 0.8
 	UIStroke.Thickness = 2
-	UIStroke.Color = color
+	UIStroke.Color = Color3.fromRGB(40,40,40)
 	
 	local title = Instance.new("Frame",outline)
 	title.BackgroundTransparency = 1
@@ -211,7 +210,7 @@ function lib:new(props)
 		local UICorner = Instance.new("UICorner",ImageButton)
 		local UIStroke = Instance.new("UIStroke",ImageButton)
 		ImageButton.AnchorPoint = Vector2.new(0.5, 0)
-		ImageButton.BackgroundColor3 = color
+		ImageButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
 		ImageButton.BorderSizePixel = 0
 		ImageButton.AutoButtonColor = false
 		ImageButton.BackgroundTransparency = 0.2
@@ -221,7 +220,7 @@ function lib:new(props)
 		UICorner.CornerRadius = UDim.new(0.075, 0)
 		UIStroke.Transparency = 0.9
 		UIStroke.Thickness = 2
-		UIStroke.Color = color
+		UIStroke.Color = Color3.fromRGB(40,40,40)
 		ImageButton.MouseButton1Click:Connect(function()
 			if screen then
 				screen.Enabled = not screen.Enabled
@@ -235,7 +234,6 @@ function lib:new(props)
 		["tabs"] = tabslist,
 		["mobilescreen"] = mobilescreen,
 		["textsize"] = textsize,
-		["color"] = color,
 		["notifications"] = notificationframe,
 		["content"] = content,
 		["size"] = size,
@@ -284,26 +282,6 @@ function lib:settextsize(num,ingrovemobile)
 		end
 	end
 end
-function lib:settheme(color)
-	local window = self
-	if window and window.screen and color then
-		window.color = color
-		if window.mobilescreen then
-			window.mobilescreen.ImageButton.BackgroundColor3 = color
-			window.mobilescreen.ImageButton.UIStroke.Color = color
-		end
-		for _, v in pairs(window.screen:GetDescendants()) do
-			if (v:IsA("Frame") or v:IsA("TextLabel") or v:IsA("TextButton")) and not window.block[v] then
-				if v.BackgroundTransparency < 1 then
-					v.BackgroundColor3 = color
-				end
-			end
-			if v:IsA("UIStroke") and not window.block[v] then
-				v.Color = color
-			end
-		end
-	end
-end
 function lib:delete()
 	local window = self
 	if window and window.screen then
@@ -330,7 +308,7 @@ function lib:notification(props)
 	Frame.BorderSizePixel = 0
 	Frame.Size = UDim2.new(1, 0, utility.mobilenumber(50.8330002), 0)
 
-	content.BackgroundColor3 = window.color
+	content.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	content.BorderSizePixel = 0
 	content.Position = UDim2.new(1, 0, 0, 0)
 	content.Size = UDim2.new(1, 0, 1, 0)
@@ -367,7 +345,7 @@ function lib:page(props)
 	local ImageButton = Instance.new("ImageButton",window.tabs)
 	local UICorner = Instance.new("UICorner",ImageButton)
 
-	ImageButton.BackgroundTransparency = 0.9
+	ImageButton.BackgroundTransparency = 0.7
 	ImageButton.BackgroundColor3 = Color3.new(0,0,0)
 	ImageButton.AutoButtonColor = false
 	ImageButton.BorderSizePixel = 0
@@ -457,7 +435,7 @@ function pages:section(props)
 	page.window.block[TextLabel] = true
 
 	Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	Frame.BackgroundTransparency = 0.800
+	Frame.BackgroundTransparency = 0.7
 	Frame.BorderSizePixel = 0
 	Frame.Size = UDim2.new(1, 0, 0.1, 0)
 
@@ -528,7 +506,7 @@ function sections:button(props)
 	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
 
 	TextButton.AnchorPoint = Vector2.new(0.5, 0.5)
-	TextButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	TextButton.BackgroundTransparency = 0.800
 	TextButton.BorderSizePixel = 0
 	TextButton.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -587,7 +565,7 @@ function sections:toggle(props)
 	Frame.Size = UDim2.new(1, 0, 0, utility.mobilenumber(25))
 
 	button.AnchorPoint = Vector2.new(0, 0.5)
-	button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
+	button.BackgroundColor3 = x and Color3.fromRGB(40,40,40) or Color3.fromRGB(200,200,200)
 	button.BackgroundTransparency = 0.200
 	button.BorderSizePixel = 0
 	button.Position = UDim2.new(0.030911902, 0, 0.5, 0)
@@ -609,7 +587,6 @@ function sections:toggle(props)
 	button.MouseButton1Click:Connect(function()
 		x = not x
 		section.window.block[button] = not x
-		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
 		pcall(function()
 			callback(x)
 		end)
@@ -624,7 +601,6 @@ function sections:toggle(props)
 	function toggle:set(value)
 		x = value
 		section.window.block[button] = not x
-		button.BackgroundColor3 = x and section.window.color or Color3.fromRGB(40,40,40)
 		pcall(function()
 			callback(x)
 		end)
