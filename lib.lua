@@ -1391,6 +1391,8 @@ function sections:textbox(props)
 	TextBox.Size = UDim2.new(1, 0, 0.45714286, 0)
 	TextBox.Font = Enum.Font.SourceSans
 	TextBox.Text = def
+	TextBox.ClipsDescendants = true
+	TextBox.ClearTextOnFocus = false
 	TextBox.PlaceholderText = placeholder
 	TextBox.PlaceholderColor3 = Color3.fromRGB(200,200,200)
 	TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
