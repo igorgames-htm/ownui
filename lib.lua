@@ -104,6 +104,10 @@ function lib:new(props)
 	UIStroke.Transparency = 0.85
 	UIStroke.Thickness = 2
 	UIStroke.Color = Color3.fromRGB(20,20,20)
+	UIShadow = Instance.new("UIShadow",outline)
+	UIShadow.BlurRadius = UDim.new(0.08,0)
+	UIShadow.Color = Color3.fromRGB(20,20,20)
+	UIShadow.Transparency = 0
 	
 	local title = Instance.new("Frame",outline)
 	title.BackgroundTransparency = 1
